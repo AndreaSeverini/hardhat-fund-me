@@ -3,14 +3,17 @@ const { networkConfig, developmentChains } = require("../helper-hardhat-config")
 const { verify } = require("../utils/verify")
 require("dotenv").config()
 
+//anonymous arrow function
+// {getNamedAccounts, deployments} = (hre)
 module.exports = async ({ getNamedAccounts, deployments }) => {
-    const { deploy, log } = deployments
-    const { deployer } = await getNamedAccounts()
+    const { deploy, log, get } = deployments //getting two utility functions
+    const { deployer } = await getNamedAccounts() //comes from namedAccount in config
     const chainId = network.config.chainId
 
     let ethUsdPriceFeedAddress
+    //we want to use a mock
     if (chainId == 31337) {
-        const ethUsdAggregator = await deployments.get("MockV3Aggregator")
+        const ethUsdAggregator = await get("MockV3Aggregator")
         ethUsdPriceFeedAddress = ethUsdAggregator.address
     } else {
         ethUsdPriceFeedAddress = networkConfig[chainId]["ethUsdPriceFeed"]
@@ -22,7 +25,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         args: [ethUsdPriceFeedAddress],
         log: true,
         // we need to wait if on a live network so we can verify properly
-        waitConfirmations: network.config.blockConfirmations || 1,
+        waitConfirmations: network.config.blockConfirmations || 1
     })
     log(`FundMe deployed at ${fundMe.address}`)
 
