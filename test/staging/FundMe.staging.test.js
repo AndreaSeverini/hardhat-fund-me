@@ -1,10 +1,11 @@
-const { assert } = require("chai")
+const { assert, expect } = require("chai")
 const { network, ethers, getNamedAccounts } = require("hardhat")
 const { developmentChains } = require("../../helper-hardhat-config")
 
+//this is to test on a real testnet and not on local (final test prior production)
 developmentChains.includes(network.name)
     ? describe.skip
-    : describe("FundMe Staging Tests", function () {
+    : describe("FundMe Staging Tests", function() {
           let deployer
           let fundMe
           const sendValue = ethers.utils.parseEther("0.1")
@@ -13,9 +14,9 @@ developmentChains.includes(network.name)
               fundMe = await ethers.getContract("FundMe", deployer)
           })
 
-          it("allows people to fund and withdraw", async function () {
+          it("allows people to fund and withdraw", async function() {
               const fundTxResponse = await fundMe.fund({ value: sendValue })
-              await fundTxResponse.wait(1)
+              const fundTxReceipe = await fundTxResponse.wait(1)
               const withdrawTxResponse = await fundMe.withdraw()
               await withdrawTxResponse.wait(1)
 
@@ -26,6 +27,10 @@ developmentChains.includes(network.name)
                   endingFundMeBalance.toString() +
                       " should equal 0, running assert equal..."
               )
-              assert.equal(endingFundMeBalance.toString(), "0")
+              console.log(endingFundMeBalance)
+              const expectedValue = "0"
+
+              expect(endingFundMeBalance.toString()).to.equal(expectedValue)
+              assert.equal(endingFundMeBalance.toString(), 0)
           })
       })

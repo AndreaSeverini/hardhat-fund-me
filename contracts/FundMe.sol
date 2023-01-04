@@ -62,11 +62,11 @@ contract FundMe {
     function withdraw() public onlyOwner {
         for (
             uint256 funderIndex = 0;
-            funderIndex < s_funders.length;
+            funderIndex < s_funders.length; //lot expensive
             funderIndex++
         ) {
             address funder = s_funders[funderIndex];
-            s_addressToAmountFunded[funder] = 0;
+            s_addressToAmountFunded[funder] = 0; //lot expensive
         }
         s_funders = new address[](0);
         // Transfer vs call vs Send
@@ -76,7 +76,8 @@ contract FundMe {
     }
 
     function cheaperWithdraw() public onlyOwner {
-        address[] memory funders = s_funders;
+        address[] memory funders = s_funders; //lives only inside the function
+        //reading 1 time from storage and the other from memory makes your life cheaper
         // mappings can't be in memory, sorry!
         for (
             uint256 funderIndex = 0;
