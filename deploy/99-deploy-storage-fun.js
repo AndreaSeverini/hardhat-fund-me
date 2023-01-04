@@ -1,23 +1,37 @@
 const { network, ethers } = require("hardhat")
-const { developmentChains } = require("../helper-hardhat-config")
+const { networkConfig, developmentChains } = require("../helper-hardhat-config")
 const { verify } = require("../utils/verify")
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
-    const { deploy, log } = deployments
+    const { deploy, log, get } = deployments
     const { deployer } = await getNamedAccounts()
+    const chainId = network.config.chainId
 
     log("----------------------------------------------------")
     log("Deploying FunWithStorage and waiting for confirmations...")
+    log("The ChainId of EVM is --> ", chainId)
+    let ethUsdPriceFeedAddress
+    //we want to use a mock
+    if (chainId == 31337) {
+        const ethUsdAggregator = await get("MockV3Aggregator")
+        ethUsdPriceFeedAddress = ethUsdAggregator.address
+    } else {
+        ethUsdPriceFeedAddress = networkConfig[chainId]["ethUsdPriceFeed"]
+    }
+    log("ETHUSD address : ", ethUsdPriceFeedAddress)
     const funWithStorage = await deploy("FunWithStorage", {
         from: deployer,
-        args: [],
+        args: [ethUsdPriceFeedAddress],
         log: true,
         // we need to wait if on a live network so we can verify properly
-        waitConfirmations: network.config.blockConfirmations || 1,
+        waitConfirmations: network.config.blockConfirmations || 1
     })
-    
-    if (!developmentChains.includes(network.name) && process.env.ETHERSCAN_API_KEY) {
-        await verify(funWithStorage.address, [])
+
+    if (
+        !developmentChains.includes(network.name) &&
+        process.env.ETHERSCAN_API_KEY
+    ) {
+        await verify(funWithStorage.address, [ethUsdPriceFeedAddress])
     }
 
     log("Logging storage...")
